@@ -23,6 +23,25 @@ Chaque source peut tomber en panne sans faire échouer le workflow : le brief si
 
 Le workflow `brief-quotidien` accepte en entrée un `BriefInput` (`dry_run`, `max_articles_per_source`, `max_stories`, `model`). Avec `dry_run=true`, le brief est construit mais pas publié.
 
+## Exécution manuelle (sans déploiement)
+
+Le moyen le plus simple de l'utiliser sans déploiement managé : une commande qui démarre le worker, exécute le workflow une fois, affiche le brief puis s'arrête.
+
+1. Copiez `.env.example` en `.env` et renseignez `MISTRAL_API_KEY` (niveau gratuit disponible sur [console.mistral.ai](https://console.mistral.ai/)).
+2. Pour un essai (affichage du brief, aucune publication) :
+
+```bash
+uv run python -m worker.entrypoints.run_once
+```
+
+3. Pour publier le brief sur Slack, renseignez aussi `SLACK_BOT_TOKEN` et `SLACK_CHANNEL` dans `.env`, puis :
+
+```bash
+uv run python -m worker.entrypoints.run_once --post
+```
+
+Pour l'automatiser tous les jours à 18h00 sans payer de déploiement managé, planifiez la commande `--post` avec le planificateur de votre machine (cron, Task Scheduler…).
+
 ## Développement local
 
 ```bash
@@ -30,7 +49,7 @@ uv sync --all-groups
 uv run pytest
 ```
 
-Pour lancer un worker local, copiez `.env.example` en `.env` avec votre `MISTRAL_API_KEY`, puis :
+Pour lancer un worker local en continu, copiez `.env.example` en `.env` avec votre `MISTRAL_API_KEY`, puis :
 
 ```bash
 uv run python -m worker.entrypoints.worker
@@ -55,6 +74,6 @@ curl -X POST https://api.mistral.ai/v1/workflows/brief-quotidien/execute \
 
 Le worker s'authentifie automatiquement auprès de Mistral via le token de service account injecté par la plateforme (`mistralai-workflows` ≥ 3.10 requis).
 
-## Planification
+## Planification (déploiement managé)
 
-Le workflow est planifié chaque jour à 18h00 (heure de Paris) via un schedule Mistral Workflows (`time_zone_name=Europe/Paris`, politique de chevauchement `SKIP`).
+Sur un plan compatible, le workflow peut être planifié chaque jour à 18h00 (heure de Paris) via un schedule Mistral Workflows (`time_zone_name=Europe/Paris`, politique de chevauchement `SKIP`).
